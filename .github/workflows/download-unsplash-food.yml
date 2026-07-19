@@ -1,0 +1,44 @@
+name: Download Unsplash food landscape images
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/download-unsplash-food.mjs'
+      - '.github/workflows/download-unsplash-food.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out collection branch
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install browser helpers
+        run: npm install --no-save puppeteer-core image-size
+
+      - name: Download 16 free landscape food images
+        run: node scripts/download-unsplash-food.mjs
+
+      - name: Show downloaded files
+        run: |
+          find unsplash-food-landscape -maxdepth 2 -type f -printf '%p\n' | sort
+          du -sh unsplash-food-landscape
+
+      - name: Upload image package
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsplash-food-landscape-16
+          path: unsplash-food-landscape
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 6
